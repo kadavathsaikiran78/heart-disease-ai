@@ -1,0 +1,65 @@
+{
+  "timestamp_utc": "2026-11-12T01:40:00Z",
+  "host_platform": "win32",
+  "python_version": "3.15.0 (tags/v3.15.0:d220409, Oct  9 2026, 11:55:56) [MSC v.1951 64 bit (AMD64)]",
+  "python_executable": "C:\\Python315\\python.exe",
+  "virtual_environment_detected": false,
+  "virtual_environment_path": null,
+  "installed_packages": {
+    "scikit-learn": "NOT_INSTALLED: No module named 'scikit_learn'",
+    "numpy": "NOT_INSTALLED: No module named 'numpy'",
+    "scipy": "NOT_INSTALLED: No module named 'scipy'",
+    "pandas": "NOT_INSTALLED: No module named 'pandas'",
+    "joblib": "NOT_INSTALLED: No module named 'joblib'",
+    "fastapi": "NOT_INSTALLED: No module named 'fastapi'",
+    "pydantic": "NOT_INSTALLED: No module named 'pydantic'",
+    "uvicorn": "NOT_INSTALLED: No module named 'uvicorn'"
+  },
+  "pinned_backend_requirements": {
+    "scikit-learn": "1.9.1",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "pandas": "3.1.1",
+    "joblib": "1.6.0",
+    "fastapi": "0.162.0",
+    "pydantic": "2.14.2",
+    "uvicorn": "0.54.0",
+    "total_pinned_count": 156
+  },
+  "cloud_training_recorded_versions": {
+    "python_version": "3.13.18",
+    "scikit_learn_version": "1.6.1",
+    "pandas_version": "2.2.3",
+    "numpy_version": "2.1.3",
+    "joblib_version": "1.4.2"
+  },
+  "frontend_dependencies": {
+    "dependencies": {
+      "class-variance-authority": "^0.7.1",
+      "cn": "^0.5.1",
+      "lucide-react": "^1.66.0",
+      "next": "16.4.3",
+      "radix-ui": "^1.8.1",
+      "react": "19.3.0",
+      "react-dom": "19.3.0",
+      "recharts": "^3.10.1",
+      "shadcn": "^4.23.0",
+      "tw-animate-css": "^1.4.0"
+    },
+    "devDependencies": {
+      "@tailwindcss/turbopack": "^4",
+      "@types/node": "^20",
+      "@types/react": "^19",
+      "@types/react-dom": "^19",
+      "eslint": "^9",
+      "eslint-config-next": "16.4.3",
+      "tailwindcss": "^4",
+      "typescript": "^5"
+    }
+  },
+  "compatibility_status": {
+    "backend_installed_vs_pinned": "MISMATCH_NOT_INSTALLED",
+    "backend_pinned_vs_cloud": "MISMATCH_SCIKIT_LEARN (1.9.1 vs 1.6.1)",
+    "local_model_artifacts": "MISSING_BLOCKED"
+  }
+}

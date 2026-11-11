@@ -1,0 +1,9 @@
+# Dedicated, reproducible training dependency specification
+# Aligned with Google Colab and the backend serving runtime
+scikit-learn==1.6.1
+pandas>=2.2.0,<3.0.0
+numpy>=1.26.0,<3.0.0
+scipy>=1.13.0,<2.0.0
+joblib>=1.4.0,<2.0.0
+matplotlib>=3.8.0
+seaborn>=0.13.0

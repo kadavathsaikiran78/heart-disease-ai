@@ -1,0 +1,22 @@
+# Minimal, production-ready backend runtime and testing requirements
+# Derived strictly from imports in backend/app/ and tests/
+# Preserves Scikit-learn 1.6.1 synchronization from Phase 1 compatibility decision
+
+# Web Framework & ASGI Server
+fastapi>=0.115.0
+uvicorn>=0.30.0
+
+# Schema Validation
+pydantic>=2.10.0
+
+# Scientific Computing & Tabular Inference
+numpy>=1.26.0
+pandas>=2.2.0
+scipy>=1.13.0
+
+# Machine Learning & Deserialization
+scikit-learn==1.6.1
+joblib>=1.4.0
+
+# API Testing (TestClient dependency)
+httpx>=0.27.0

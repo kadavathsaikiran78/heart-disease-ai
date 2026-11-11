@@ -1,84 +1,43 @@
+"""Preprocessing pipeline for Heart Disease AI clinical data analytics.
+
+This module provides leakage-free preprocessing transformations for the UCI
+Cleveland heart disease dataset. Preprocessing pipelines must be embedded
+directly inside model cross-validation folds, preventing data leakage between
+training and validation sets.
+"""
 
 from pathlib import Path
+from typing import Any
 
-import joblib
 import numpy as np
 import pandas as pd
-
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-
 # --------------------------------------------------
-# 1. PROJECT PATHS
-# --------------------------------------------------
-
-BASE_DIR = Path(__file__).resolve().parent
-
-DATASET_PATH = BASE_DIR / "datasets" / "processed.cleveland.data"
-REPORT_DIR = BASE_DIR / "reports"
-MODEL_DIR = BASE_DIR / "models"
-
-REPORT_DIR.mkdir(parents=True, exist_ok=True)
-MODEL_DIR.mkdir(parents=True, exist_ok=True)
-
-
-# --------------------------------------------------
-# 2. LOAD DATASET
+# 1. SCHEMA DEFINITIONS (UCI Cleveland Dataset)
 # --------------------------------------------------
 
-columns = [
+COLUMNS = [
     "age", "sex", "cp", "trestbps", "chol",
     "fbs", "restecg", "thalach", "exang",
     "oldpeak", "slope", "ca", "thal", "num"
 ]
 
-df = pd.read_csv(
-    DATASET_PATH,
-    header=None,
-    names=columns,
-    na_values="?"
-)
+FEATURE_NAMES = COLUMNS[:-1]
 
-print("\n========== DATASET LOADED ==========")
-print("Dataset shape:", df.shape)
-
-
-# --------------------------------------------------
-# 3. SEPARATE FEATURES AND TARGET
-# --------------------------------------------------
-
-X = df.drop(columns=["num"])
-
-# Binary classification:
-# 0 = no disease label
-# 1 = disease label (original values 1, 2, 3, 4)
-
-y = (df["num"] > 0).astype(int)
-
-print("\n========== TARGET DISTRIBUTION ==========")
-print(y.value_counts().sort_index())
-
-print("\nTarget percentages:")
-print((y.value_counts(normalize=True) * 100).round(2))
-
-
-# --------------------------------------------------
-# 4. DEFINE FEATURE TYPES
-# --------------------------------------------------
-
-numeric_features = [
+NUMERICAL_FEATURES = [
     "age",
     "trestbps",
     "chol",
     "thalach",
-    "oldpeak"
+    "oldpeak",
 ]
 
-categorical_features = [
+CATEGORICAL_FEATURES = [
     "sex",
     "cp",
     "fbs",
@@ -86,181 +45,171 @@ categorical_features = [
     "exang",
     "slope",
     "ca",
-    "thal"
+    "thal",
 ]
 
+EXPECTED_CATEGORIES = {
+    "sex": {0, 1},
+    "cp": {1, 2, 3, 4},
+    "fbs": {0, 1},
+    "restecg": {0, 1, 2},
+    "exang": {0, 1},
+    "slope": {1, 2, 3},
+    "ca": {0, 1, 2, 3},
+    "thal": {3, 6, 7},
+}
 
-# --------------------------------------------------
-# 5. CREATE PREPROCESSING PIPELINES
-# --------------------------------------------------
+EXPECTED_ROWS = 303
+EXPECTED_COLUMNS = 14
+EXPECTED_PROCESSED_FEATURE_COUNT = 28
+RANDOM_SEED = 42
 
-numeric_pipeline = Pipeline(
-    steps=[
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler())
-    ]
-)
-
-categorical_pipeline = Pipeline(
-    steps=[
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("encoder", OneHotEncoder(handle_unknown="ignore"))
-    ]
-)
-
-preprocessor = ColumnTransformer(
-    transformers=[
-        ("numeric", numeric_pipeline, numeric_features),
-        ("categorical", categorical_pipeline, categorical_features)
-    ]
-)
+BASE_DIR = Path(__file__).resolve().parent
+DATASET_PATH = BASE_DIR / "datasets" / "processed.cleveland.data"
+REPORT_DIR = BASE_DIR / "reports"
+MODEL_DIR = BASE_DIR / "models"
 
 
 # --------------------------------------------------
-# 6. SPLIT DATASET
+# 2. LEAKAGE-FREE PIPELINE FACTORIES
 # --------------------------------------------------
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.20,
-    random_state=42,
-    stratify=y
-)
-
-print("\n========== DATASET SPLIT ==========")
-print("Training records:", len(X_train))
-print("Testing records:", len(X_test))
-
-print("\nTraining target distribution:")
-print(y_train.value_counts().sort_index())
-
-print("\nTesting target distribution:")
-print(y_test.value_counts().sort_index())
+def build_numeric_pipeline() -> Pipeline:
+    """Construct the numeric feature preprocessing pipeline."""
+    return Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]
+    )
 
 
-# --------------------------------------------------
-# 7. FIT ON TRAINING DATA ONLY
-# --------------------------------------------------
-
-X_train_processed = preprocessor.fit_transform(X_train)
-
-X_test_processed = preprocessor.transform(X_test)
-
-# Convert sparse matrices to regular arrays
-if hasattr(X_train_processed, "toarray"):
-    X_train_processed = X_train_processed.toarray()
-
-if hasattr(X_test_processed, "toarray"):
-    X_test_processed = X_test_processed.toarray()
-
-print("\n========== PREPROCESSING ==========")
-print("Training feature shape:", X_train_processed.shape)
-print("Testing feature shape:", X_test_processed.shape)
+def build_categorical_pipeline() -> Pipeline:
+    """Construct the categorical feature preprocessing pipeline."""
+    return Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("encoder", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
 
 
-# --------------------------------------------------
-# 8. SAVE PREPROCESSOR
-# --------------------------------------------------
+def build_preprocessor() -> ColumnTransformer:
+    """Construct the combined column transformer for clinical features.
 
-preprocessor_path = MODEL_DIR / "preprocessor.joblib"
+    Numerical features (5):
+      - Median imputation followed by standard scaling.
+    Categorical features (8):
+      - Most-frequent imputation followed by one-hot encoding.
+    Total transformed output: 28 features.
+    """
+    return ColumnTransformer(
+        transformers=[
+            ("numeric", build_numeric_pipeline(), NUMERICAL_FEATURES),
+            ("categorical", build_categorical_pipeline(), CATEGORICAL_FEATURES),
+        ]
+    )
 
-joblib.dump(preprocessor, preprocessor_path)
 
+def build_pipeline(classifier: Any) -> Pipeline:
+    """Wrap a classifier into an end-to-end leakage-free pipeline.
 
-# --------------------------------------------------
-# 9. SAVE PROCESSED DATA
-# --------------------------------------------------
-
-feature_names = preprocessor.get_feature_names_out()
-
-X_train_df = pd.DataFrame(
-    X_train_processed,
-    columns=feature_names
-)
-
-X_test_df = pd.DataFrame(
-    X_test_processed,
-    columns=feature_names
-)
-
-X_train_df.to_csv(
-    REPORT_DIR / "X_train_processed.csv",
-    index=False
-)
-
-X_test_df.to_csv(
-    REPORT_DIR / "X_test_processed.csv",
-    index=False
-)
-
-y_train.to_csv(
-    REPORT_DIR / "y_train.csv",
-    index=False,
-    header=["target"]
-)
-
-y_test.to_csv(
-    REPORT_DIR / "y_test.csv",
-    index=False,
-    header=["target"]
-)
+    The preprocessing pipeline is fitted strictly within each cross-validation
+    training fold, ensuring validation folds are never leaked into imputation
+    medians or scaling parameters.
+    """
+    return Pipeline(
+        steps=[
+            ("preprocessor", build_preprocessor()),
+            ("classifier", classifier),
+        ]
+    )
 
 
 # --------------------------------------------------
-# 10. SAVE PREPROCESSING SUMMARY
+# 3. DATASET LOADING AND VALIDATION
 # --------------------------------------------------
 
-with open(REPORT_DIR / "preprocessing_summary.txt", "w") as file:
+def load_cleveland_dataset(
+    dataset_path: Path | str = DATASET_PATH,
+) -> tuple[pd.DataFrame, pd.Series]:
+    """Load and validate the raw UCI Cleveland heart disease dataset.
 
-    file.write("HEART DISEASE DATA PREPROCESSING REPORT\n")
-    file.write("=" * 50 + "\n\n")
+    Returns:
+        tuple[pd.DataFrame, pd.Series]: (X, y) where X contains the 13 raw
+        clinical features and y contains binary disease labels (0 vs 1).
+    """
+    path = Path(dataset_path)
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Dataset file not found at: {path}. "
+            "Download processed.cleveland.data to ml/datasets/ or train in Google Colab."
+        )
 
-    file.write(f"Original records: {len(df)}\n")
-    file.write(f"Original features: {X.shape[1]}\n")
+    df = pd.read_csv(
+        path,
+        header=None,
+        names=COLUMNS,
+        na_values="?",
+        skipinitialspace=True,
+    )
 
-    file.write("\nMissing values before preprocessing:\n")
-    file.write(X.isnull().sum().to_string())
+    if df.shape != (EXPECTED_ROWS, EXPECTED_COLUMNS):
+        raise ValueError(
+            f"Expected dataset shape ({EXPECTED_ROWS}, {EXPECTED_COLUMNS}), "
+            f"observed {df.shape}."
+        )
 
-    file.write("\n\nTraining records:\n")
-    file.write(str(len(X_train)))
+    # Binary classification mapping:
+    # 0 = no disease label
+    # 1, 2, 3, 4 = disease label present
+    X = df[FEATURE_NAMES].copy()
+    y = (df["num"] > 0).astype(int)
 
-    file.write("\n\nTesting records:\n")
-    file.write(str(len(X_test)))
+    return X, y
 
-    file.write("\n\nProcessed training shape:\n")
-    file.write(str(X_train_processed.shape))
 
-    file.write("\n\nProcessed testing shape:\n")
-    file.write(str(X_test_processed.shape))
-
-    file.write("\n\nBinary target distribution:\n")
-    file.write(y.value_counts().sort_index().to_string())
-
-    file.write("\n\nPreprocessing methods:\n")
-    file.write("Numeric missing values: Median imputation\n")
-    file.write("Numeric scaling: StandardScaler\n")
-    file.write("Categorical missing values: Most frequent imputation\n")
-    file.write("Categorical encoding: OneHotEncoder\n")
-    file.write("Train-test split: 80:20\n")
-    file.write("Random state: 42\n")
+def split_dataset(
+    X: pd.DataFrame,
+    y: pd.Series,
+    test_size: float = 0.20,
+    random_state: int = RANDOM_SEED,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+    """Perform a stratified train/test split on raw, unprocessed features."""
+    return train_test_split(
+        X,
+        y,
+        test_size=test_size,
+        stratify=y,
+        random_state=random_state,
+    )
 
 
 # --------------------------------------------------
-# 11. FINAL STATUS
+# 4. DRY-RUN INSPECTION (ZERO LOCAL TRAINING)
 # --------------------------------------------------
 
-print("\n========== PREPROCESSING COMPLETED ==========")
+if __name__ == "__main__":
+    print("\n==================================================")
+    print(" HEART DISEASE AI - PREPROCESSING SPECIFICATION   ")
+    print("==================================================")
+    print(f"Features (13): {FEATURE_NAMES}")
+    print(f"Numerical (5): {NUMERICAL_FEATURES}")
+    print(f"Categorical (8): {CATEGORICAL_FEATURES}")
+    print(f"Expected transformed dimension: {EXPECTED_PROCESSED_FEATURE_COUNT}")
 
-print("Missing values handled through fitted imputers.")
-print("Categorical features encoded.")
-print("Numerical features standardized.")
-print("Training and testing datasets prepared.")
+    preprocessor = build_preprocessor()
+    print(f"Constructed preprocessor: {type(preprocessor).__name__}")
+    print("Architecture: Encapsulated ColumnTransformer for fold-level cross-validation.")
 
-print("\nSaved preprocessor:")
-print(preprocessor_path)
-
-print("\nSaved reports:")
-print(REPORT_DIR)
-
-print("\nPHASE 3 COMPLETED SUCCESSFULLY!")
+    if DATASET_PATH.is_file():
+        print(f"\nLocal dataset detected at: {DATASET_PATH}")
+        X, y = load_cleveland_dataset(DATASET_PATH)
+        print(f"Loaded records: {len(X)}")
+        print("Target distribution:")
+        print(y.value_counts().sort_index())
+    else:
+        print(f"\nLocal raw dataset not found at: {DATASET_PATH}")
+        print("NOTE: Local training is disabled in Phase 2 to preserve project baselines.")
+        print("Canonical training must be executed in Google Colab using:")
+        print("  ml/notebooks/heart_disease_cloud_training.ipynb")

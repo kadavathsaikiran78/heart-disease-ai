@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "primary_model_id": "logistic_regression",
+  "models": [
+    {
+      "model_id": "logistic_regression",
+      "display_name": "Logistic Regression",
+      "algorithm_family": "Linear",
+      "artifact_filename": "logistic_regression.joblib",
+      "artifact_type": "unified_pipeline",
+      "is_primary": true,
+      "is_active": true,
+      "supports_probability": true,
+      "feature_names": [
+        "age", "sex", "cp", "trestbps", "chol", "fbs",
+        "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal"
+      ],
+      "processed_feature_count": 28,
+      "model_classes": [0, 1],
+      "scikit_learn_version": "1.6.1",
+      "evaluation_report_ref": "ml/cloud_release/staging/evaluation_metrics.json",
+      "notes": "Selected model from Phase 1 Colab training. Requires Colab re-execution to export individual pipeline."
+    },
+    {
+      "model_id": "decision_tree",
+      "display_name": "Decision Tree",
+      "algorithm_family": "Tree",
+      "artifact_filename": "decision_tree.joblib",
+      "artifact_type": "unified_pipeline",
+      "is_primary": false,
+      "is_active": true,
+      "supports_probability": true,
+      "feature_names": [
+        "age", "sex", "cp", "trestbps", "chol", "fbs",
+        "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal"
+      ],
+      "processed_feature_count": 28,
+      "model_classes": [0, 1],
+      "scikit_learn_version": "1.6.1",
+      "evaluation_report_ref": "ml/cloud_release/staging/cross_validation_results.csv",
+      "notes": "Requires Colab re-execution to export individual pipeline."
+    },
+    {
+      "model_id": "random_forest",
+      "display_name": "Random Forest",
+      "algorithm_family": "Ensemble",
+      "artifact_filename": "random_forest.joblib",
+      "artifact_type": "unified_pipeline",
+      "is_primary": false,
+      "is_active": true,
+      "supports_probability": true,
+      "feature_names": [
+        "age", "sex", "cp", "trestbps", "chol", "fbs",
+        "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal"
+      ],
+      "processed_feature_count": 28,
+      "model_classes": [0, 1],
+      "scikit_learn_version": "1.6.1",
+      "evaluation_report_ref": "ml/cloud_release/staging/cross_validation_results.csv",
+      "notes": "Requires Colab re-execution to export individual pipeline."
+    },
+    {
+      "model_id": "svm",
+      "display_name": "Support Vector Machine",
+      "algorithm_family": "Kernel",
+      "artifact_filename": "svm.joblib",
+      "artifact_type": "unified_pipeline",
+      "is_primary": false,
+      "is_active": true,
+      "supports_probability": true,
+      "feature_names": [
+        "age", "sex", "cp", "trestbps", "chol", "fbs",
+        "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal"
+      ],
+      "processed_feature_count": 28,
+      "model_classes": [0, 1],
+      "scikit_learn_version": "1.6.1",
+      "evaluation_report_ref": "ml/cloud_release/staging/cross_validation_results.csv",
+      "notes": "SVC trained with probability=True. Requires Colab re-execution."
+    },
+    {
+      "model_id": "knn",
+      "display_name": "K-Nearest Neighbors",
+      "algorithm_family": "Instance-Based",
+      "artifact_filename": "knn.joblib",
+      "artifact_type": "unified_pipeline",
+      "is_primary": false,
+      "is_active": true,
+      "supports_probability": true,
+      "feature_names": [
+        "age", "sex", "cp", "trestbps", "chol", "fbs",
+        "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal"
+      ],
+      "processed_feature_count": 28,
+      "model_classes": [0, 1],
+      "scikit_learn_version": "1.6.1",
+      "evaluation_report_ref": "ml/cloud_release/staging/cross_validation_results.csv",
+      "notes": "KNN n_neighbors=7. Requires Colab re-execution."
+    }
+  ]
+}

@@ -219,8 +219,22 @@ def _verify_pipeline(path: Path, metadata: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("reloaded probability differs from initial probability")
         classifier_name = type(classifier).__name__
         selected_name = str(metadata["selected_model_name"])
-        if classifier_name.lower().replace("classifier", "") not in (
-            selected_name.lower().replace(" ", ""),
+        normalized_selected = (
+            selected_name.lower().replace(" ", "").replace("-", "")
+        )
+        normalized_classifier = (
+            classifier_name.lower().replace("classifier", "").replace("-", "")
+        )
+        VALID_PAIRS = {
+            ("logisticregression", "logisticregression"),
+            ("decisiontree", "decisiontree"),
+            ("randomforest", "randomforest"),
+            ("supportvectormachine", "svc"),
+            ("knearestneighbors", "kneighbors"),
+        }
+        if (
+            (normalized_selected, normalized_classifier) not in VALID_PAIRS
+            and normalized_classifier not in normalized_selected
         ):
             raise ValueError(
                 f"classifier {classifier_name} does not match metadata model {selected_name}"
@@ -255,6 +269,13 @@ def _local_comparison() -> dict[str, Any]:
         "local_model_path": str(LOCAL_MODEL_PATH.relative_to(PROJECT_ROOT)),
         "local_preprocessor_path": str(LOCAL_PREPROCESSOR_PATH.relative_to(PROJECT_ROOT)),
     }
+    if not LOCAL_MODEL_PATH.is_file() or not LOCAL_PREPROCESSOR_PATH.is_file():
+        comparison.update({
+            "status": "BLOCKED",
+            "message": "Local model artifacts do not exist on disk in ml/models/.",
+            "available_performance_metrics": None,
+        })
+        return comparison
     try:
         model = joblib.load(LOCAL_MODEL_PATH)
         preprocessor = joblib.load(LOCAL_PREPROCESSOR_PATH)
@@ -375,6 +396,26 @@ def verify_release(archive_path: Path, cloud_release_dir: Path | None = None) ->
 
     metadata, metadata_check = _load_metadata(staging_dir / "model_metadata.json")
     validation["checks"]["metadata"] = metadata_check
+
+    if metadata and "scikit_learn_version" in metadata:
+        try:
+            import sklearn
+            trained_ver = str(metadata["scikit_learn_version"])
+            runtime_ver = str(sklearn.__version__)
+            if trained_ver != runtime_ver:
+                validation["checks"]["scikit_learn_version"] = _result(
+                    "WARNING",
+                    f"scikit-learn version mismatch: metadata={trained_ver}, runtime={runtime_ver}",
+                )
+            else:
+                validation["checks"]["scikit_learn_version"] = _result(
+                    "PASSED",
+                    f"scikit-learn runtime matches metadata version {runtime_ver}",
+                )
+        except ImportError:
+            validation["checks"]["scikit_learn_version"] = _result(
+                "BLOCKED", "scikit-learn is not installed in the active environment"
+            )
 
     for name in ("evaluation_metrics.json",):
         try:
