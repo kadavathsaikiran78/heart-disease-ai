@@ -1,0 +1,14 @@
+{
+  "accuracy": 0.8688524590163934,
+  "precision": 0.8125,
+  "recall_sensitivity": 0.9285714285714286,
+  "specificity": 0.8181818181818182,
+  "f1": 0.8666666666666667,
+  "roc_auc": 0.9664502164502166,
+  "brier_score": 0.08319487694332522,
+  "test_observations": 61,
+  "class_support": {
+    "0": 33,
+    "1": 28
+  }
+}

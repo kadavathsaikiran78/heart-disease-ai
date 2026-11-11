@@ -86,7 +86,8 @@ export function Sidebar() {
           </span>
         </div>
         <p className="mt-2 text-xs leading-5 text-slate-500">
-          Sample interface. No clinical predictions are active.
+          Academic research prototype. Predictions use the saved model and are
+          not medical diagnoses.
         </p>
       </div>
     </aside>

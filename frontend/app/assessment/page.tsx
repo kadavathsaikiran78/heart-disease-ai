@@ -12,29 +12,19 @@ import { clinicalFields } from "@/lib/clinical-schema";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "http://127.0.0.1:8000";
-const ASSESSMENT_FEATURES = [
-  "age",
-  "sex",
-  "cp",
-  "trestbps",
-  "chol",
-  "fbs",
-  "restecg",
-  "thalach",
-  "exang",
-  "oldpeak",
-  "slope",
-  "ca",
-  "thal",
-] as const;
+const ASSESSMENT_FEATURES = clinicalFields.map((field) => field.name);
 
 interface AssessmentResponse {
   success: boolean;
   message: string;
-  prediction: null;
+  prediction: number;
+  prediction_label: string;
+  class_1_probability: number | null;
   model_connected: boolean;
   feature_count: number;
-  features_received: string[];
+  processed_feature_count: number;
+  model_name: string;
+  disclaimer: string;
 }
 
 function isAssessmentResponse(
@@ -48,10 +38,15 @@ function isAssessmentResponse(
   return (
     typeof response.success === "boolean" &&
     typeof response.message === "string" &&
-    response.prediction === null &&
+    typeof response.prediction === "number" &&
+    typeof response.prediction_label === "string" &&
+    (response.class_1_probability === null ||
+      typeof response.class_1_probability === "number") &&
     typeof response.model_connected === "boolean" &&
     typeof response.feature_count === "number" &&
-    Array.isArray(response.features_received)
+    typeof response.processed_feature_count === "number" &&
+    typeof response.model_name === "string" &&
+    typeof response.disclaimer === "string"
   );
 }
 
@@ -77,24 +72,28 @@ export default function AssessmentPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (loading) {
+      return;
+    }
+
     setLoading(true);
     setError("");
     setApiResponse(null);
 
     try {
-    if (
-      ASSESSMENT_FEATURES.some(
-        (feature) =>
-          typeof values[feature] !== "string" ||
-          values[feature].trim() === ""
-      )
-    ) {
-      throw new Error("Complete every clinical field before submitting.");
-    }
+      if (
+        ASSESSMENT_FEATURES.some(
+          (feature) =>
+            typeof values[feature] !== "string" ||
+            values[feature].trim() === ""
+        )
+      ) {
+        throw new Error("Complete every clinical field before submitting.");
+      }
 
-    const payload = Object.fromEntries(
-      ASSESSMENT_FEATURES.map((feature) => [
-        feature,
+      const payload = Object.fromEntries(
+        ASSESSMENT_FEATURES.map((feature) => [
+          feature,
           Number(values[feature]),
         ])
       );
@@ -182,7 +181,7 @@ export default function AssessmentPage() {
       description="Enter clinical features for the research prototype."
     >
       <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-        DEMO ONLY — NO ML PREDICTION
+        ACADEMIC RESEARCH PROTOTYPE
       </Badge>
 
       <Card className="border-slate-200 shadow-sm">
@@ -294,7 +293,7 @@ export default function AssessmentPage() {
       </Card>
 
       {error && (
-        <Card className="border-red-200">
+        <Card className="border-red-200" role="alert">
           <CardContent className="p-5">
             <h3 className="font-semibold text-red-700">
               Backend Connection Error
@@ -307,32 +306,38 @@ export default function AssessmentPage() {
       )}
 
       {apiResponse !== null && (
-        <Card className="border-green-200">
+        <Card className="border-green-200" role="status" aria-live="polite">
           <CardContent className="p-6">
             <h3 className="font-semibold text-green-700">
-              Assessment Received and Validated
+              Model Assessment Complete
             </h3>
 
             <p className="mt-1 text-sm text-slate-500">
-              The backend received {isAssessmentResponse(apiResponse)
+              The saved model processed {isAssessmentResponse(apiResponse)
                 ? apiResponse.feature_count
-                : 0} clinical features successfully.
+                : 0} clinical features.
             </p>
 
             {isAssessmentResponse(apiResponse) && (
               <div className="mt-4 space-y-2 rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
                 <p>{apiResponse.message}</p>
                 <p>
-                  ML model:{" "}
+                  Prediction:{" "}
                   <span className="font-medium">
-                    {apiResponse.model_connected
-                      ? "Connected"
-                      : "Not connected"}
+                    {apiResponse.prediction_label}
                   </span>
                 </p>
+                <p>Model: <span className="font-medium">{apiResponse.model_name}</span></p>
                 <p>
-                  Prediction and risk category are unavailable until a
-                  trained model is integrated.
+                  Class-1 model-estimated probability:{" "}
+                  <span className="font-medium">
+                    {apiResponse.class_1_probability === null
+                      ? "Unavailable"
+                      : `${(apiResponse.class_1_probability * 100).toFixed(1)}%`}
+                  </span>
+                </p>
+                <p className="pt-2 text-xs text-slate-500">
+                  {apiResponse.disclaimer}
                 </p>
               </div>
             )}
@@ -343,9 +348,8 @@ export default function AssessmentPage() {
 
             <div className="mt-4 flex gap-2 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
               <Info className="shrink-0" size={19} />
-              Backend data validation does not mean a heart-disease
-              prediction has been generated. The trained ML model
-              must be integrated separately.
+              This result is a dataset classification label from an academic
+              research prototype, not a medical diagnosis.
             </div>
           </CardContent>
         </Card>

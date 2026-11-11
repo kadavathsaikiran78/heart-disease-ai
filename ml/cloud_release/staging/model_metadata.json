@@ -1,0 +1,85 @@
+{
+  "project_name": "AI-Based Early Prediction of Heart Disease Using Clinical Data Analytics",
+  "dataset_source": "UCI Heart Disease processed Cleveland dataset",
+  "dataset_filename": "processed.cleveland.data",
+  "feature_names": [
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal"
+  ],
+  "target_column": "num",
+  "binary_target_mapping": {
+    "0": 0,
+    "1,2,3,4": 1
+  },
+  "numerical_features": [
+    "age",
+    "trestbps",
+    "chol",
+    "thalach",
+    "oldpeak"
+  ],
+  "categorical_features": [
+    "sex",
+    "cp",
+    "fbs",
+    "restecg",
+    "exang",
+    "slope",
+    "ca",
+    "thal"
+  ],
+  "imputation": {
+    "numeric": "median",
+    "categorical": "most_frequent"
+  },
+  "scaling": "StandardScaler",
+  "encoding": "OneHotEncoder(handle_unknown=\"ignore\")",
+  "train_test_split": {
+    "test_size": 0.2,
+    "stratify": true,
+    "random_state": 42
+  },
+  "cross_validation": {
+    "type": "StratifiedKFold",
+    "n_splits": 5,
+    "shuffle": true,
+    "random_state": 42,
+    "selection_metric": "mean ROC-AUC"
+  },
+  "selected_model_name": "Logistic Regression",
+  "final_test_metrics": {
+    "accuracy": 0.8688524590163934,
+    "precision": 0.8125,
+    "recall_sensitivity": 0.9285714285714286,
+    "specificity": 0.8181818181818182,
+    "f1": 0.8666666666666667,
+    "roc_auc": 0.9664502164502166,
+    "brier_score": 0.08319487694332522,
+    "test_observations": 61,
+    "class_support": {
+      "0": 33,
+      "1": 28
+    }
+  },
+  "python_version": "3.13.18 (main, Oct 26 2026, 15:28:15) [GCC 13.3.0]",
+  "scikit_learn_version": "1.6.1",
+  "training_timestamp_utc": "2026-11-06T08:50:27.751788+00:00",
+  "model_classes": [
+    "0",
+    "1"
+  ],
+  "processed_feature_count": 28,
+  "probability_warning": "Class-1 probability is a model estimate for the dataset label, not a calibrated clinical risk.",
+  "limitation": "Academic research prototype; not clinically validated and not a medical diagnostic system."
+}

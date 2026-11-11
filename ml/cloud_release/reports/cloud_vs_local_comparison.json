@@ -1,0 +1,105 @@
+{
+  "status": "FAILED",
+  "cloud": {
+    "selected_model_name": "Logistic Regression",
+    "model_classes": [
+      "0",
+      "1"
+    ],
+    "feature_names": [
+      "age",
+      "sex",
+      "cp",
+      "trestbps",
+      "chol",
+      "fbs",
+      "restecg",
+      "thalach",
+      "exang",
+      "oldpeak",
+      "slope",
+      "ca",
+      "thal"
+    ],
+    "processed_feature_count": 28,
+    "preprocessing": {
+      "imputation": {
+        "numeric": "median",
+        "categorical": "most_frequent"
+      },
+      "scaling": "StandardScaler",
+      "encoding": "OneHotEncoder(handle_unknown=\"ignore\")"
+    },
+    "evaluation_methodology": {
+      "type": "StratifiedKFold",
+      "n_splits": 5,
+      "shuffle": true,
+      "random_state": 42,
+      "selection_metric": "mean ROC-AUC"
+    },
+    "available_performance_metrics": {
+      "accuracy": 0.8688524590163934,
+      "precision": 0.8125,
+      "recall_sensitivity": 0.9285714285714286,
+      "specificity": 0.8181818181818182,
+      "f1": 0.8666666666666667,
+      "roc_auc": 0.9664502164502166,
+      "brier_score": 0.08319487694332522,
+      "test_observations": 61,
+      "class_support": {
+        "0": 33,
+        "1": 28
+      }
+    }
+  },
+  "local": {
+    "status": "PASSED",
+    "local_model_path": "ml\\models\\best_model.joblib",
+    "local_preprocessor_path": "ml\\models\\preprocessor.joblib",
+    "model_type": "LogisticRegression",
+    "preprocessor_type": "ColumnTransformer",
+    "feature_names": [
+      "age",
+      "sex",
+      "cp",
+      "trestbps",
+      "chol",
+      "fbs",
+      "restecg",
+      "thalach",
+      "exang",
+      "oldpeak",
+      "slope",
+      "ca",
+      "thal"
+    ],
+    "processed_feature_count": 28,
+    "classes": [
+      0,
+      1
+    ],
+    "evaluation_methodology": "Existing local artifacts were produced from pre-transformed data; the cloud notebook uses preprocessing inside each CV fold.",
+    "available_performance_metrics": {
+      "selected_model": "Logistic Regression",
+      "accuracy": 0.8688524590163934,
+      "precision": 0.8125,
+      "recall": 0.9285714285714286,
+      "f1_score": 0.8666666666666667,
+      "roc_auc": 0.9664502164502166,
+      "confusion_matrix": [
+        [
+          27,
+          6
+        ],
+        [
+          2,
+          26
+        ]
+      ]
+    }
+  },
+  "evaluation_comparison": {
+    "compatible": false,
+    "reason": "Cloud evaluation uses preprocessing inside each cross-validation fold; local evaluation uses pre-transformed data. Metrics are reported as evidence but are not treated as directly comparable."
+  }
+}
